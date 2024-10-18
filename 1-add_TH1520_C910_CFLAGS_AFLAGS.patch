@@ -1,0 +1,84 @@
+diff --git a/arch/riscv/Makefile b/arch/riscv/Makefile
+index 4d27754a4..8cac6f64b 100644
+--- a/arch/riscv/Makefile
++++ b/arch/riscv/Makefile
+@@ -72,16 +72,72 @@ endif
+ riscv-march-$(CONFIG_TOOLCHAIN_HAS_ZIHINTPAUSE) := $(riscv-march-y)_zihintpause
+ 
+ # XUANTIE ISA
+-riscv-march-$(CONFIG_XUANTIE_ISA) := $(riscv-march-y)_xtheadc
++# Check for T-Head ISA extensions on TH1520 (C910)
++toolchain-has-zfh := $(call cc-option-yn, -march=$(riscv-march-y)_zfh)
++riscv-march-$(toolchain-has-v0p7) := $(riscv-march-y)_zfh
+ 
+-# Remove F,D from isa string for xuantie-toolchain (e.g. gcc-10.4).
+-# Remove F,D,V from isa string for upstream-toolchain.
+-ifeq ($(CONFIG_TOOLCHAIN_HAS_XTHEADC)$(call gcc-max-version, 100400),yy)
+-	KBUILD_CFLAGS += -march=$(subst fd,,$(riscv-march-y))
+-else
+-	KBUILD_CFLAGS += -march=$(shell echo $(riscv-march-y) | sed -E 's/(rv32ima|rv64ima)fd([^v_]*)v?/\1\2/')
++toolchain-has-xtheadba := $(call cc-option-yn, -march=$(riscv-march-y)_xtheadba)
++riscv-march-$(toolchain-has-xtheadba) := $(riscv-march-y)_xtheadba
++
++toolchain-has-xtheadbb := $(call cc-option-yn, -march=$(riscv-march-y)_xtheadbb)
++riscv-march-$(toolchain-has-xtheadbb) := $(riscv-march-y)_xtheadbb
++
++toolchain-has-xtheadbs := $(call cc-option-yn, -march=$(riscv-march-y)_xtheadbs)
++riscv-march-$(toolchain-has-xtheadbs) := $(riscv-march-y)_xtheadbs
++
++toolchain-has-xtheadcmo := $(call cc-option-yn, -march=$(riscv-march-y)_xtheadcmo)
++riscv-march-$(toolchain-has-xtheadcmo) := $(riscv-march-y)_xtheadcmo
++
++toolchain-has-xtheadcondmov := $(call cc-option-yn, -march=$(riscv-march-y)_xtheadcondmov)
++riscv-march-$(toolchain-has-xtheadcondmov) := $(riscv-march-y)_xtheadcondmov
++
++toolchain-has-xtheadfmemidx := $(call cc-option-yn, -march=$(riscv-march-y)_xtheadfmemidx)
++riscv-march-$(toolchain-has-xtheadfmemidx) := $(riscv-march-y)_xtheadfmemidx
++
++# xtheadfmv only available in RV32
++ifeq ($(CONFIG_ARCH_RV32I),y)
++toolchain-has-xtheadfmv := $(call cc-option-yn, -march=$(riscv-march-y)_xtheadfmv)
++riscv-march-$(toolchain-has-xtheadfmv) := $(riscv-march-y)_xtheadfmv
+ endif
+ 
++toolchain-has-xtheadint := $(call cc-option-yn, -march=$(riscv-march-y)_xtheadint)
++riscv-march-$(toolchain-has-xtheadint) := $(riscv-march-y)_xtheadint
++
++toolchain-has-xtheadmac := $(call cc-option-yn, -march=$(riscv-march-y)_xtheadmac)
++riscv-march-$(toolchain-has-xtheadmac) := $(riscv-march-y)_xtheadmac
++
++toolchain-has-xtheadmemidx := $(call cc-option-yn, -march=$(riscv-march-y)_xtheadmemidx)
++riscv-march-$(toolchain-has-xtheadmemidx) := $(riscv-march-y)_xtheadmemidx
++
++# Disabled xtheadmempair as it causes dwarf2 error
++#toolchain-has-xtheadmempair := $(call cc-option-yn, -march=$(riscv-march-y)_xtheadmempair)
++#riscv-march-$(toolchain-has-xtheadmempair) := $(riscv-march-y)_xtheadmempair
++
++toolchain-has-xtheadsync := $(call cc-option-yn, -march=$(riscv-march-y)_xtheadsync)
++riscv-march-$(toolchain-has-xtheadsync) := $(riscv-march-y)_xtheadsync
++
++toolchain-has-xtheadvector := $(call cc-option-yn, -march=$(riscv-march-y)_xtheadvector1p0)
++riscv-march-$(toolchain-has-xtheadvector) := $(riscv-march-y)_xtheadvector1p0
++
++# Strip floating-point and vector related ISA extensions out of CFLAGS, but keep them on AFLAGS
++riscv-march-cflags := $(riscv-march-y)
++riscv-march-cflags := $(subst fd,,$(riscv-march-cflags))
++riscv-march-cflags := $(subst _zfh,,$(riscv-march-cflags))
++#riscv-march-cflags := $(subst _xtheadba,,$(riscv-march-cflags))
++#riscv-march-cflags := $(subst _xtheadbb,,$(riscv-march-cflags))
++#riscv-march-cflags := $(subst _xtheadbs,,$(riscv-march-cflags))
++#riscv-march-cflags := $(subst _xtheadcmo,,$(riscv-march-cflags))
++#riscv-march-cflags := $(subst _xtheadcondmov,,$(riscv-march-cflags))
++riscv-march-cflags := $(subst _xtheadfmemidx,,$(riscv-march-cflags))
++riscv-march-cflags := $(subst _xtheadfmv,,$(riscv-march-cflags))
++#riscv-march-cflags := $(subst _xtheadint,,$(riscv-march-cflags))
++#riscv-march-cflags := $(subst _xtheadmac,,$(riscv-march-cflags))
++#riscv-march-cflags := $(subst _xtheadmemidx,,$(riscv-march-cflags))
++#riscv-march-cflags := $(subst _xtheadmempair,,$(riscv-march-cflags))
++#riscv-march-cflags := $(subst _xtheadsync,,$(riscv-march-cflags))
++riscv-march-cflags := $(subst _xtheadvector1p0,,$(riscv-march-cflags))
++
++KBUILD_CFLAGS += -march=$(riscv-march-cflags)
+ KBUILD_AFLAGS += -march=$(riscv-march-y)
+ 
+ KBUILD_CFLAGS += -mno-save-restore

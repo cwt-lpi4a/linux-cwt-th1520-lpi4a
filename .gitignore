@@ -1,0 +1,5 @@
+config.new
+pkg
+src
+*.tar.gz
+*.pkg.tar.zst
